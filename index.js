@@ -7,7 +7,7 @@ const app=express()
 app.use(json())
 app.use(cors())
 
-const port=process.env.PORT || 5743
+const port=process.env.PORTA || 5743
 let db
 const mongoClient=new MongoClient(process.env.MONGO_URL)
 const promessa= mongoClient.connect()
@@ -74,4 +74,4 @@ app.delete('/quadro/:idEvento',async (req,res)=>{
 })
 
 
-app.listen(port,()=>console.log('servidor em pé na porta 5743'))
+app.listen(port,()=>console.log(`servidor em pé na porta ${port}`))
