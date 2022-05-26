@@ -74,4 +74,77 @@ app.delete('/quadro/:idEvento',async (req,res)=>{
 })
 
 
+app.post('/convites/:idEvento',async(req,res)=>{
+    const {nome}=req.headers
+    const {idEvento}=req.params
+    const convidado=req.body.pessoa
+    if(convidado==''){res.sendStatus(499);return}
+    try{
+        const evento=await db.collection('eventos').findOne({id:idEvento})
+        
+        await db.collection('convites').insertOne({idEvento,dono:evento.nome,convidado,aceito:false,tempo:Date.now()})
+        res.sendStatus(200)     
+    
+}catch(e){res.sendStatus(500);console.log(e)}
+})
+app.get('/convites/:idEvento',async(req,res)=>{
+    const {nome}=req.headers
+    const {idEvento}=req.params
+    try{
+        
+        const lista=await db.collection('convites').find({idEvento}).toArray()
+        res.send(lista)     
+    
+}catch(e){res.sendStatus(500);console.log(e)}
+})
+app.get('/qtdConvites',async(req,res)=>{
+    const {nome}=req.headers
+    try{
+        const usuario=await db.collection('usuarios').findOne({nome})
+        const lista=await db.collection('convites').find({convidado:nome,aceito:false}).toArray()
+        const listaL=lista.filter(obj=>{
+            if(obj.tempo>usuario.tempo){return true}return false
+        })
+        await db.collection('usuarios').updateOne({nome},{$set:{tempo:Date.now()}})
+        
+        res.send({qtd:listaL.length})     
+    
+}catch(e){res.sendStatus(500);console.log(e)}
+})
+app.get('/convites',async(req,res)=>{
+    const {nome}=req.headers
+    
+    try{
+        const lista=await db.collection('convites').find({convidado:nome,aceito:false}).toArray()
+        const lista2=[]
+        let evento
+        
+        for( let k=0;k<lista.length;k++){
+            try{
+                evento= await db.collection('eventos').findOne({id:lista[k].idEvento})
+                lista2.push({...evento,cor:'aquamarine'});
+            }catch{console.log('qweet')}
+             
+        }
+        
+        res.send(lista2)     
+    
+}catch(e){res.sendStatus(500);console.log(e)}
+})
+app.put('/convites/:idEvento',async(req,res)=>{
+    const {nome}=req.headers
+    const {idEvento}=req.params
+    try{
+        
+        await db.collection('convites').updateOne({idEvento,convidado:nome},{$set:{aceito:true}})
+    
+        
+        res.sendStatus(200)     
+    
+}catch(e){res.sendStatus(500);console.log(e)}
+})
+
+
+
+
 app.listen(port,()=>console.log(`servidor em pé na porta ${port}`))
